@@ -1,0 +1,92 @@
+analyze_preference_task:
+  description: >
+    You are analyzing the compatibility between User "{user_id}" and Item "{item_id}" using ONLY the
+    factual data provided below. Do NOT invent attributes, products, brands, or categories that are
+    not in this data.
+
+
+    === USER PROFILE (verbatim from Yelp) ===
+
+    {user_summary}
+
+
+    === ITEM DETAILS (verbatim from Yelp) ===
+
+    {item_summary}
+
+
+    === USER REVIEW HISTORY (verbatim from Yelp) ===
+
+    {history_summary}
+
+
+    Produce a concise psychological/compatibility analysis that:
+
+    1. States the user's historical AVERAGE star rating and rating DISTRIBUTION exactly as listed.
+       If the user mostly gives 3-stars, treat them as a critical reviewer; if 4-5 stars, generous.
+
+    2. Compares the item's actual category/attributes against patterns visible in the user's prior
+       reviews (cite at least 2 specific past reviews when available).
+
+    3. Predicts whether this user is likely to give a HIGH, MEDIUM, or LOW rating, with a numeric
+       preliminary estimate that respects the user's historical distribution. Do NOT default to 4 or 5
+       just because the item has high public ratings.
+
+
+    HARD RULES:
+
+    - Never reference products or categories absent from the data above (no "headphones",
+      "keyboards", "Bluetooth devices", etc., unless they appear verbatim).
+
+    - If a field is missing or marked unavailable, say so plainly instead of inventing it.
+  expected_output: >
+    A short markdown analysis (max 250 words) that explicitly cites the user's average stars,
+    rating distribution, 1-2 quoted historical reviews, and a numeric preliminary rating estimate
+    with a one-sentence justification.
+  agent: psychological_analyst
+
+simulate_review_task:
+  description: >
+    Using ONLY the data and analysis already provided in this run, generate the simulated rating and
+    review that User "{user_id}" would write for Item "{item_id}".
+
+
+    === USER PROFILE ===
+
+    {user_summary}
+
+
+    === ITEM DETAILS ===
+
+    {item_summary}
+
+
+    === USER REVIEW HISTORY ===
+
+    {history_summary}
+
+
+    === FALLBACK RATING IF UNCERTAIN ===
+
+    {fallback_rating}
+
+
+    HARD RULES:
+
+    1. The "stars" value MUST be one of 1.0, 2.0, 3.0, 4.0, or 5.0 and must be consistent with the
+       user's historical rating distribution. If the user averages around 3.0, do NOT output 4.5.
+       If the user has both 3 and 5 star reviews, pick whichever fits this specific item best.
+
+    2. Write the review in ENGLISH (1-3 sentences) matching the user's prior tone, vocabulary, and
+       casing (many Yelp users write entirely in lowercase — replicate that if it is the user's style).
+
+    3. Reference only attributes, dishes, locations, or experiences that plausibly relate to the
+       item's actual categories from the data above. Do NOT mention products that are not in the
+       item's categories (e.g., do not invent electronics for a restaurant).
+
+    4. Output STRICTLY a single JSON object: {{"stars": <float>, "review": "<text>"}}. No prose,
+       no markdown fences, no commentary before or after.
+  expected_output: >
+    A single JSON object with exactly two keys: "stars" (float 1.0-5.0) and "review" (string in
+    English matching the user's tone). No additional text.
+  agent: behavior_simulator
