@@ -26,7 +26,7 @@ import sys
 import os
 
 if sys.prefix == sys.base_prefix:
-    print("❌ Please run with uv: uv run python run_test.py", file=sys.stderr)
+    print("[ERROR] Please run with uv: uv run python run_test.py", file=sys.stderr)
     sys.exit(1)
 
 import json
@@ -45,7 +45,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed, TimeoutError as
 # ======================================================================
 # Instructor-configured constants — fill in before distributing to students
 # ======================================================================
-INSTRUCTOR_EMAIL = "yc.ho@gms.ndhu.edu.tw"
+INSTRUCTOR_EMAIL = ""
 # App Password is NOT stored here — it is entered by the student at runtime
 # (prompted in Step 2 of the interactive flow).
 
@@ -91,10 +91,13 @@ if args.mock:
 
     patch("litellm.completion", side_effect=_fake_completion).start()
     os.environ["OPENAI_API_KEY"] = "sk-mock-key"
-    print("⚙️  Mode: Mock LLM (dry-run)")
+    print("[INFO] Mode: Mock LLM (dry-run)")
 else:
     from dotenv import load_dotenv
     load_dotenv()
+    # CrewAI/litellm stacks may read OPENAI_BASE_URL (not OPENAI_API_BASE).
+    if os.environ.get("OPENAI_API_BASE") and not os.environ.get("OPENAI_BASE_URL"):
+        os.environ["OPENAI_BASE_URL"] = os.environ["OPENAI_API_BASE"]
 
 logging.basicConfig(level=logging.WARNING, format="%(asctime)s [%(levelname)s] %(message)s")
 
@@ -121,15 +124,15 @@ while True:
     name = input(f"  Member {idx} name  (or press Enter to finish): ").strip()
     if not name:
         if not members:
-            print("  ⚠️  At least one member is required.")
+            print("  [WARN] At least one member is required.")
             continue
         break
     sid = input(f"  Member {idx} student ID: ").strip()
     if not sid:
-        print("  ⚠️  Student ID cannot be empty.")
+        print("  [WARN] Student ID cannot be empty.")
         continue
     members.append({"name": name, "student_id": sid})
-    print(f"  ✅ Added: {name} ({sid})")
+    print(f"  [OK] Added: {name} ({sid})")
     print()
 
 team_label = "_".join(f"{m['name']}_{m['student_id']}" for m in members)
@@ -144,23 +147,27 @@ print("Step 2 — Confirm details")
 print("-" * 40)
 print(f"  Team members  : {len(members)}")
 for m in members:
-    print(f"    • {m['name']} ({m['student_id']})")
+    print(f"    - {m['name']} ({m['student_id']})")
 if args.test_set:
     print(f"  Test set      : {args.test_set}  (local)")
 elif GDRIVE_URL:
     print(f"  Test set      : Google Drive  (will download after confirmation)")
 else:
-    print(f"  Test set      : ⚠️  not configured")
+    print(f"  Test set      : [WARN] not configured")
 print(f"  Threads       : {args.threads}")
 print(f"  Timeout/task  : {TIMEOUT_SEC or '∞'}s")
 print(f"  Email subject : {email_subject}")
-print(f"  Report to     : {INSTRUCTOR_EMAIL or '⚠️  (not configured)'}")
+print(f"  Report to     : {INSTRUCTOR_EMAIL or '[WARN] (not configured)'}")
 print()
 
-INSTRUCTOR_APP_PASSWORD = input("  App Password  : (provided by instructor) ").strip()
-if not INSTRUCTOR_APP_PASSWORD:
-    print("  ⚠️  App Password is required to submit results.")
-    sys.exit(1)
+INSTRUCTOR_APP_PASSWORD = ""
+if INSTRUCTOR_EMAIL:
+    INSTRUCTOR_APP_PASSWORD = input("  App Password  : (provided by instructor) ").strip()
+    if not INSTRUCTOR_APP_PASSWORD:
+        print("  [WARN] App Password is required to submit results.")
+        sys.exit(1)
+else:
+    print("  App Password  : (skipped, email disabled)")
 print()
 
 confirm = input("Proceed? [y/N]: ").strip().lower()
@@ -183,16 +190,16 @@ gt_dir   = os.path.join(tmp_dir, "groundtruth")
 if args.test_set:
     # --- Local file (override mode) ---
     if not os.path.exists(args.test_set):
-        print(f"❌ Test set not found: {args.test_set}", file=sys.stderr)
+        print(f"[ERROR] Test set not found: {args.test_set}", file=sys.stderr)
         sys.exit(1)
     zip_path = args.test_set
-    print(f"  ℹ️  Using local file: {zip_path}")
+    print(f"  [INFO] Using local file: {zip_path}")
 
 elif GDRIVE_URL:
     # --- Google Drive download ---
     import gdown
     zip_path = os.path.join(tmp_dir, "test_set.zip")
-    print(f"  ⏳ Downloading test set from Google Drive ...")
+    print(f"  [INFO] Downloading test set from Google Drive ...")
     try:
         # Extract file ID from sharing URL and download
         import re as _re
@@ -200,22 +207,22 @@ elif GDRIVE_URL:
         file_id = _m.group(1) if _m else GDRIVE_URL
         gdown.download(id=file_id, output=zip_path, quiet=False)
     except Exception as e:
-        print(f"❌ Download failed: {e}", file=sys.stderr)
+        print(f"[ERROR] Download failed: {e}", file=sys.stderr)
         print("   Check your internet connection and confirm the sharing link is", file=sys.stderr)
         print("   set to 'Anyone with the link — Viewer'.", file=sys.stderr)
         tmp_dir_obj.cleanup()
         sys.exit(1)
     if not os.path.exists(zip_path) or os.path.getsize(zip_path) == 0:
-        print("❌ Downloaded file is empty or missing.", file=sys.stderr)
+        print("[ERROR] Downloaded file is empty or missing.", file=sys.stderr)
         print("   The Google Drive link may have expired or sharing permissions", file=sys.stderr)
         print("   may not be set to 'Anyone with the link'.", file=sys.stderr)
         tmp_dir_obj.cleanup()
         sys.exit(1)
     size_kb = os.path.getsize(zip_path) / 1024
-    print(f"  ✅ Downloaded ({size_kb:.1f} KB)")
+    print(f"  [OK] Downloaded ({size_kb:.1f} KB)")
 
 else:
-    print("❌ No test set available.", file=sys.stderr)
+    print("[ERROR] No test set available.", file=sys.stderr)
     print("   Either set GDRIVE_URL in run_test.py, or pass a local zip:", file=sys.stderr)
     print("   uv run python run_test.py --test-set /path/to/test_set.zip", file=sys.stderr)
     tmp_dir_obj.cleanup()
@@ -226,7 +233,7 @@ with zipfile.ZipFile(zip_path, "r") as zf:
     zf.extractall(tmp_dir)
 
 n_tasks = len([f for f in os.listdir(task_dir) if f.endswith(".json")])
-print(f"  ✅ Extracted {n_tasks} tasks")
+print(f"  [OK] Extracted {n_tasks} tasks")
 
 # ======================================================================
 # 4. Inference
@@ -243,7 +250,7 @@ simulator = Simulator(data_dir="dummy_dataset", device="cpu", cache=True)
 simulator.set_task_and_groundtruth(task_dir=task_dir, groundtruth_dir=gt_dir)
 simulator.set_agent(CrewAISimulationAgent)
 init_elapsed = time.time() - init_start
-print(f"  ✅ Simulator initialized ({init_elapsed:.1f}s) — {len(simulator.tasks)} tasks")
+print(f"  [OK] Simulator initialized ({init_elapsed:.1f}s) - {len(simulator.tasks)} tasks")
 
 def _run_single(idx, task, interaction_tool):
     from crewai_simulation_agent import CrewAISimulationAgent as Cls
@@ -262,7 +269,7 @@ def _run_single_with_retry(idx, task, interaction_tool):
             is_rate_limit = "RateLimitError" in type(e).__name__ or "429" in str(e)
             if is_rate_limit and attempt < _RATE_LIMIT_RETRIES - 1:
                 wait = 60 * (attempt + 1)
-                print(f"\n    ⚠️  Rate limit — waiting {wait}s before retry {attempt + 2}/{_RATE_LIMIT_RETRIES}...", flush=True)
+                print(f"\n    [WARN] Rate limit - waiting {wait}s before retry {attempt + 2}/{_RATE_LIMIT_RETRIES}...", flush=True)
                 time.sleep(wait)
                 continue
             raise
@@ -296,7 +303,7 @@ if args.threads > 1:
             print(f"  Task {i+1:02d}/{len(simulator.tasks)} — stars={stars}  ({elapsed:.1f}s)")
 else:
     for i, t in enumerate(simulator.tasks):
-        print(f"  ⏳ Task {i+1:02d}/{len(simulator.tasks)} — user={t.user_id[:8]}...  item={t.item_id[:8]}...", end="", flush=True)
+        print(f"  [RUN] Task {i+1:02d}/{len(simulator.tasks)} - user={t.user_id[:8]}...  item={t.item_id[:8]}...", end="", flush=True)
         t0 = time.time()
         try:
             with ThreadPoolExecutor(max_workers=1) as ex:
@@ -312,7 +319,7 @@ else:
         elapsed = time.time() - t0
         per_task_times.append(elapsed)
         simulator.simulation_outputs.append(result)
-        print(f" → stars={stars}  ({elapsed:.1f}s)")
+        print(f" -> stars={stars}  ({elapsed:.1f}s)")
 
 infer_elapsed = time.time() - infer_start
 
@@ -386,9 +393,9 @@ print("=" * 65)
 for k, v in eval_results.get("metrics", {}).items():
     print(f"  {k:30s}: {v}")
 print("-" * 65)
-print(f"  ⏱  Inference time : {infer_elapsed:.1f}s  (avg {avg_time:.1f}s/task)")
-print(f"  ❌  Errors/timeouts: {error_count}")
-print(f"  📁  Local report  : {REPORT_PATH}")
+print(f"  Inference time : {infer_elapsed:.1f}s  (avg {avg_time:.1f}s/task)")
+print(f"  Errors/timeouts: {error_count}")
+print(f"  Local report   : {REPORT_PATH}")
 print("=" * 65)
 
 # ======================================================================
@@ -399,7 +406,7 @@ env_bytes    = json.dumps(env_snapshot, indent=2, ensure_ascii=False).encode("ut
 
 if not INSTRUCTOR_EMAIL or not INSTRUCTOR_APP_PASSWORD:
     print()
-    print("⚠️  Email not configured (INSTRUCTOR_EMAIL / INSTRUCTOR_APP_PASSWORD not set).")
+    print("[WARN] Email not configured (INSTRUCTOR_EMAIL / INSTRUCTOR_APP_PASSWORD not set).")
     print(f"   Please send {REPORT_PATH} to the instructor manually.")
 else:
     print()
@@ -436,12 +443,12 @@ else:
         with smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=20) as server:
             server.login(INSTRUCTOR_EMAIL, INSTRUCTOR_APP_PASSWORD)
             server.send_message(msg)
-        print(f"  ✅ Email sent to {INSTRUCTOR_EMAIL}")
+        print(f"  [OK] Email sent to {INSTRUCTOR_EMAIL}")
     except smtplib.SMTPAuthenticationError as e:
-        print(f"  ❌ Authentication failed: {e}", file=sys.stderr)
+        print(f"  [ERROR] Authentication failed: {e}", file=sys.stderr)
         print(f"   Manually send {REPORT_PATH} to the teacher.", file=sys.stderr)
     except Exception as e:
-        print(f"  ❌ Email error ({type(e).__name__}): {e}", file=sys.stderr)
+        print(f"  [ERROR] Email error ({type(e).__name__}): {e}", file=sys.stderr)
         print(f"   Manually send {REPORT_PATH} to the teacher.", file=sys.stderr)
 
 # ======================================================================
@@ -450,4 +457,4 @@ else:
 tmp_dir_obj.cleanup()
 
 print()
-print("✅  Test run complete!")
+print("[OK] Test run complete!")

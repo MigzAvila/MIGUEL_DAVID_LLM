@@ -2,7 +2,7 @@
 
 > **Task:** Yelp Review Simulation (Track 1)
 > **Framework:** [CrewAI](https://github.com/crewAIInc/crewAI) ≥ 1.14.1
-> **LLM Backend:** NVIDIA NIM via OpenAI-compatible API (`minimax-m2.7`)
+> **LLM Backend:** [Groq](https://groq.com/) via LiteLLM (`groq/…` model id), OpenAI-compatible base URL `https://api.groq.com/openai/v1`. Per-agent overrides live under each `llm:` key in [`config/agents.yaml`](config/agents.yaml); `OPENAI_MODEL_NAME` in `.env` should match the same provider/model family.
 > **Package Manager:** `uv`
 
 ---
@@ -97,6 +97,8 @@ Rather than having a `data_retriever` agent call the `Interaction Tool Wrapper` 
 
 All agents are defined in [`config/agents.yaml`](config/agents.yaml) following the YAML-first pattern. Three crew variants are available, all drawing from the same agent pool.
 
+**Current deployment (check repo):** each agent’s **`llm:`** is set to `groq/llama-3.1-8b-instant` to stay under Groq TPM limits during development. For a final run you can switch (e.g. to `groq/llama-3.3-70b-versatile`) in both `config/agents.yaml` and `.env` (`OPENAI_MODEL_NAME`, `NVIDIA_MODEL_NAME`).
+
 ### 3.1 Agent Pool (`config/agents.yaml`)
 
 #### 🔬 `psychological_analyst`
@@ -105,7 +107,7 @@ All agents are defined in [`config/agents.yaml`](config/agents.yaml) following t
 | **Role** | Behavioral Psychologist |
 | **Goal** | Analyze retrieved data to uncover the user's latent preferences, rating habits, and satisfaction patterns |
 | **Backstory** | Dual background in behavioral science and psychology; profiles user personality traits and rating tendencies from interaction clues |
-| **LLM** | `minimax-m2.7` |
+| **LLM** | `groq/llama-3.1-8b-instant` |
 | **Used In** | Sequential (primary), Collaborative, Hierarchical |
 
 #### 🎭 `behavior_simulator`
@@ -114,7 +116,7 @@ All agents are defined in [`config/agents.yaml`](config/agents.yaml) following t
 | **Role** | Review Simulation Expert |
 | **Goal** | Produce the most accurate star rating and realistic review text by deeply embodying the user's persona |
 | **Backstory** | Master method actor who pays close attention to historical rating distributions; never defaults to positive ratings |
-| **LLM** | `minimax-m2.7` |
+| **LLM** | `groq/llama-3.1-8b-instant` |
 | **Used In** | Sequential (primary), Collaborative, Hierarchical |
 
 #### 📡 `data_retriever`
@@ -123,7 +125,7 @@ All agents are defined in [`config/agents.yaml`](config/agents.yaml) following t
 | **Role** | Data Retrieval Specialist |
 | **Goal** | Accurately retrieve all relevant background data for the target user and item |
 | **Backstory** | Expert in big data retrieval and association rules; finds the most valuable records from massive databases |
-| **LLM** | `minimax-m2.7` |
+| **LLM** | `groq/llama-3.1-8b-instant` |
 | **Used In** | Collaborative, Hierarchical (equipped with `InteractionTool`) |
 
 #### 🗂️ `prediction_manager`
@@ -132,7 +134,7 @@ All agents are defined in [`config/agents.yaml`](config/agents.yaml) following t
 | **Role** | Yelp Prediction Project Manager |
 | **Goal** | Coordinate specialist agents to deliver one final high-quality prediction package |
 | **Backstory** | Senior PM for multi-agent prediction pipelines; breaks down objectives, delegates, validates outputs |
-| **LLM** | `minimax-m2.7` |
+| **LLM** | `groq/llama-3.1-8b-instant` |
 | **Used In** | Hierarchical (manager role only) |
 
 ---
@@ -347,7 +349,7 @@ The following figures come from the official simulator evaluation block in [`pip
 | **Report file** | `pipeline_report_20260505_113003.json` |
 | **Run timestamp** | `20260505_113003` |
 | **Mode** | Mock LLM (litellm patched; structural / smoke run) |
-| **Model name in report** | `minimaxai/minimax-m2.7` (from environment at report write time) |
+| **Model name in report** | Whatever `OPENAI_MODEL_NAME` was at run time (e.g. `gpt-4o-mini` for OpenAI, or `groq/llama-3.1-8b-instant` for Groq) |
 | **Tasks run / GT pairs** | `1` simulated vs `41` ground-truth rows loaded (evaluator uses `min(count)` → **n = 1** for metrics) |
 | **Pipeline errors** | `0` |
 

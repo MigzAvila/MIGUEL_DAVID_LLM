@@ -1,0 +1,420 @@
+{
+  "run_timestamp": "20260506_192327",
+  "mode": "real_llm",
+  "model": "minimaxai/minimax-m2.7",
+  "config": {
+    "threads": 1,
+    "timeout_seconds": 300,
+    "tasks_run": 35,
+    "tasks_total": 41
+  },
+  "timing": {
+    "init_seconds": 6.13,
+    "inference_seconds": 2213.65,
+    "total_seconds": 2219.77,
+    "avg_task_seconds": 63.25,
+    "min_task_seconds": 31.12,
+    "max_task_seconds": 139.51
+  },
+  "errors": 0,
+  "evaluation": {
+    "type": "simulation",
+    "metrics": {
+      "preference_estimation": 0.92,
+      "review_generation": 0.8467943447333721,
+      "overall_quality": 0.883397172366686
+    },
+    "data_info": {
+      "evaluated_count": 35,
+      "original_simulation_count": 35,
+      "original_ground_truth_count": 41
+    }
+  },
+  "per_task_outputs": [
+    {
+      "task": {
+        "description": "This is a simulation task. \n            You are a simulation agent that simulates a user's rating and review with an item. \n            There is a user with id and an item with id. ",
+        "user_id": "JTqQ9C9S2Qc8_aHtO1965g",
+        "item_id": "QGYzYUMsQe6k7__LD91E5w"
+      },
+      "output": {
+        "stars": 4.0,
+        "review": "qt's lemongrass tofu hoagie is still my go-to banh mi in philly! the veggies are crisp and the flavors are perfectly balanced. minus one star because the prices keep creeping up - it used to be more affordable. still worth the visit though!"
+      }
+    },
+    {
+      "task": {
+        "description": "This is a simulation task. \n            You are a simulation agent that simulates a user's rating and review with an item. \n            There is a user with id and an item with id. ",
+        "user_id": "mLwKdFW96yof7-6EVgLXhA",
+        "item_id": "fOhnSqmO4XY5vSI8whVKSA"
+      },
+      "output": {
+        "stars": 4.0,
+        "review": "i really liked everything about farmicia. the service was friendly & efficient, the food fabulous & the drinks reasonably-priced. the decor is eclectic & cozy — perfect for brunch in philadelphia!"
+      }
+    },
+    {
+      "task": {
+        "description": "This is a simulation task. \n            You are a simulation agent that simulates a user's rating and review with an item. \n            There is a user with id and an item with id. ",
+        "user_id": "qjfMBIZpQT9DDtw_BWCopQ",
+        "item_id": "Ge00ikbJsoSxuo8AcDCgOQ"
+      },
+      "output": {
+        "stars": 4.0,
+        "review": "acropolis greek taverna delivered exactly what i was hoping for. great food and fantastic entertainment on a casual night out in ybor city. the live music and dancing made it memorable, though the noise level was just average. i would return for another fun evening."
+      }
+    },
+    {
+      "task": {
+        "description": "This is a simulation task. \n            You are a simulation agent that simulates a user's rating and review with an item. \n            There is a user with id and an item with id. ",
+        "user_id": "q5g3dj7DJAPks8p4vZUsHA",
+        "item_id": "bY55freuP8C_wr6y5Fid7w"
+      },
+      "output": {
+        "stars": 4.0,
+        "review": "the cuban sandwich is awesome! it's a true tampa original with really good food. quick service, great sandwiches - def worth checking out."
+      }
+    },
+    {
+      "task": {
+        "description": "This is a simulation task. \n            You are a simulation agent that simulates a user's rating and review with an item. \n            There is a user with id and an item with id. ",
+        "user_id": "Jtfz1WbIB_FtYDkO3MtRXg",
+        "item_id": "h2kkHQGhtVuFvMBlMY8NLw"
+      },
+      "output": {
+        "stars": 4.0,
+        "review": "came here on a saturday night and it was packed but we found a spot at the bar. good beer selection, excellent prices for a divey bar in philly. definitely a good choice for casual drinks with friends. the loud atmosphere fits the vibe."
+      }
+    },
+    {
+      "task": {
+        "description": "This is a simulation task. \n            You are a simulation agent that simulates a user's rating and review with an item. \n            There is a user with id and an item with id. ",
+        "user_id": "lgUKLRsqvhu4DbM9syzq_Q",
+        "item_id": "i6jA8vSHrP9LiUPHlqPVwA"
+      },
+      "output": {
+        "stars": 4.0,
+        "review": "cafe ole never disappoints. still loving their iced tea—raspberry flavor, mint, lemon is a perfect combo. also tried their coffee and it was excellent. great variety of teas and the casual vibe keeps me coming back."
+      }
+    },
+    {
+      "task": {
+        "description": "This is a simulation task. \n            You are a simulation agent that simulates a user's rating and review with an item. \n            There is a user with id and an item with id. ",
+        "user_id": "dioXbYFdMCyE7zCK90eM3Q",
+        "item_id": "V0SHmvYtXqdv8-AsqshV6w"
+      },
+      "output": {
+        "stars": 4.0,
+        "review": "smokin betty's doesn't look open from the outside - dark glass and lack of signage give off a monet vibe - but once you're in, the bbq is solid and the burgers hit the spot. casual spot worth checking out if you're in west philly."
+      }
+    },
+    {
+      "task": {
+        "description": "This is a simulation task. \n            You are a simulation agent that simulates a user's rating and review with an item. \n            There is a user with id and an item with id. ",
+        "user_id": "bJ5FtCtZX3ZZacz2_2PJjA",
+        "item_id": "aQ2-kEwDra31zu0NCLpUsQ"
+      },
+      "output": {
+        "stars": 3.0,
+        "review": "i stopped by buffalo exchange on a recent trip to philly. they have a decent selection of vintage and funky pieces, and the prices aren't too bad. but like others have mentioned, the clothes just weren't really my style—feels like you're sifting through a lot to find something worth taking home."
+      }
+    },
+    {
+      "task": {
+        "description": "This is a simulation task. \n            You are a simulation agent that simulates a user's rating and review with an item. \n            There is a user with id and an item with id. ",
+        "user_id": "bS7dmk_OX5oIQvAhTb-bcw",
+        "item_id": "vfF68C7odKuf1yd1HLX1wQ"
+      },
+      "output": {
+        "stars": 4.0,
+        "review": "Really enjoyed my meal here! The country cottage vibe is charming, and the skillet breakfast had huge portions that were absolutely delicious. Prices are reasonable and the service was excellent. Definitely going back next time I'm in Tucson!"
+      }
+    },
+    {
+      "task": {
+        "description": "This is a simulation task. \n            You are a simulation agent that simulates a user's rating and review with an item. \n            There is a user with id and an item with id. ",
+        "user_id": "suRoi6fJjOSdzBMWzaZ5sQ",
+        "item_id": "9PZxjhTIU7OgPIzuGi89Ew"
+      },
+      "output": {
+        "stars": 4.0,
+        "review": "el vez is my kind of place—trendy without trying too hard. the guacamole is seriously addictive and the blood orange margarita hits the spot. atmosphere is fun and loud, perfect for a night out. definitely coming back."
+      }
+    },
+    {
+      "task": {
+        "description": "This is a simulation task. \n            You are a simulation agent that simulates a user's rating and review with an item. \n            There is a user with id and an item with id. ",
+        "user_id": "R-s0RjtnCRaeVW_dZ5DYbw",
+        "item_id": "wB1Tin0OW1JRpaKM-E3ZYA"
+      },
+      "output": {
+        "stars": 4.0,
+        "review": "i've always liked national mechanics for its cool vibe and cheap drinks. the decor is interesting and the service is consistently fast. good spot for a casual hangout with solid food to match."
+      }
+    },
+    {
+      "task": {
+        "description": "This is a simulation task. \n            You are a simulation agent that simulates a user's rating and review with an item. \n            There is a user with id and an item with id. ",
+        "user_id": "wb-yY6b9A7QiuPFTrnTinQ",
+        "item_id": "Y5S_AUSW8EjswVf9JAi-0w"
+      },
+      "output": {
+        "stars": 5.0,
+        "review": "horizons is hands down the best vegan food i've ever had. the romantic, upscale ambience makes it perfect for a special night out, and every dish is artfully prepared. i can't stop thinking about this place—it's truly amazing."
+      }
+    },
+    {
+      "task": {
+        "description": "This is a simulation task. \n            You are a simulation agent that simulates a user's rating and review with an item. \n            There is a user with id and an item with id. ",
+        "user_id": "2fWMTXLNI8me38FTjvLrdQ",
+        "item_id": "pW5DXTpKnw3y0fopipbJVg"
+      },
+      "output": {
+        "stars": 3.0,
+        "review": "the landmark americana is fine if you're looking for some drinks and apps, but the american fare is bland and overpriced like i expected. nothing to get super excited about here. it's decent but nothing special."
+      }
+    },
+    {
+      "task": {
+        "description": "This is a simulation task. \n            You are a simulation agent that simulates a user's rating and review with an item. \n            There is a user with id and an item with id. ",
+        "user_id": "zGc3UZ8gq_orRc3xNCf-ow",
+        "item_id": "i_FWONQD1ZBqrNE2b-M5Ug"
+      },
+      "output": {
+        "stars": 5.0,
+        "review": "Crew execution failed; falling back to historical average."
+      }
+    },
+    {
+      "task": {
+        "description": "This is a simulation task. \n            You are a simulation agent that simulates a user's rating and review with an item. \n            There is a user with id and an item with id. ",
+        "user_id": "WXJ9LB81Gv-d0kOU88UZnQ",
+        "item_id": "v9Ap15_rRtH54cDvZFY6nA"
+      },
+      "output": {
+        "stars": 1.0,
+        "review": "be ware this sprint store. they refused to help when i had billing issues and won't refund my money back. awful customer service. stay away."
+      }
+    },
+    {
+      "task": {
+        "description": "This is a simulation task. \n            You are a simulation agent that simulates a user's rating and review with an item. \n            There is a user with id and an item with id. ",
+        "user_id": "QruEFNrom_4WjiX38lHIvQ",
+        "item_id": "6_LnAQQ0-mml8YgpfRjGuA"
+      },
+      "output": {
+        "stars": 5.0,
+        "review": "Saad's is still my go-to for Halal in this city. The lamb is always perfectly seasoned and the pita is fresh. This Philadelphia spot never disappoints. Best Middle Eastern food you can get."
+      }
+    },
+    {
+      "task": {
+        "description": "This is a simulation task. \n            You are a simulation agent that simulates a user's rating and review with an item. \n            There is a user with id and an item with id. ",
+        "user_id": "FlXBpK_YZxLo27jcMdII1w",
+        "item_id": "muCelHtTlX5PrJd8JKkf_w"
+      },
+      "output": {
+        "stars": 4.0,
+        "review": "completely in love with this place! new harmony is a great spot for vegan chinese food. everything being both vegan AND kosher is pretty amazing. the dumplings are delicious. ambiance is non-existent but i can overlook that for good food!"
+      }
+    },
+    {
+      "task": {
+        "description": "This is a simulation task. \n            You are a simulation agent that simulates a user's rating and review with an item. \n            There is a user with id and an item with id. ",
+        "user_id": "rZ5WrEQXGjExDDIwT5Ojvw",
+        "item_id": "UvDud4vaI7l_JlBV3E1mHg"
+      },
+      "output": {
+        "stars": 4.0,
+        "review": "love bazil's! the dark private booths and stained glass really take you back to a different era. good food and good service make it worth it. a nice break from modern dining."
+      }
+    },
+    {
+      "task": {
+        "description": "This is a simulation task. \n            You are a simulation agent that simulates a user's rating and review with an item. \n            There is a user with id and an item with id. ",
+        "user_id": "CDxlgCoUoNRV3VMkYZrUuQ",
+        "item_id": "UdcLHHBRIxtelgbKBnhitA"
+      },
+      "output": {
+        "stars": 3.0,
+        "review": "nifty fifties is a solid burger and milkshake spot with a fun 50s vibe. fries and shakes are delicious, though nothing earth-shattering. casual, affordable, and good for a laid-back meal in philly."
+      }
+    },
+    {
+      "task": {
+        "description": "This is a simulation task. \n            You are a simulation agent that simulates a user's rating and review with an item. \n            There is a user with id and an item with id. ",
+        "user_id": "XzpJ4uHkxARCFQiZ9bffyg",
+        "item_id": "xVExbX_AWD3jlzXnKlvItQ"
+      },
+      "output": {
+        "stars": 4.0,
+        "review": "downtown cheese shop is my go-to cheese source in philadelphia. good variety and friendly service, though some specialty imports can't match their european counterparts. still a solid choice for fresh dairy and grating cheeses."
+      }
+    },
+    {
+      "task": {
+        "description": "This is a simulation task. \n            You are a simulation agent that simulates a user's rating and review with an item. \n            There is a user with id and an item with id. ",
+        "user_id": "lGFROdyJ0U6biMsim-xScA",
+        "item_id": "SdZ9ldwNbAOCf_DeUMN4Ng"
+      },
+      "output": {
+        "stars": 4.0,
+        "review": "great find in tampa! really good latin cuisine, authentic colombian dishes hit the spot. casual place where real people hang out, nice patio too"
+      }
+    },
+    {
+      "task": {
+        "description": "This is a simulation task. \n            You are a simulation agent that simulates a user's rating and review with an item. \n            There is a user with id and an item with id. ",
+        "user_id": "gfQqQYI5_hCAGEHlHXIz2Q",
+        "item_id": "xQblY1vBHV8Fp3Xdi3rDcw"
+      },
+      "output": {
+        "stars": 4.0,
+        "review": "finally made it to viet huong for some grab n go summer rolls and a bowl of pho. the rolls were stuffed to the max with fresh goodness and the pho hit the spot. casual atmosphere, good prices, and authentic vietnamese cuisine in a no fuss setting. will definitely be back for more."
+      }
+    },
+    {
+      "task": {
+        "description": "This is a simulation task. \n            You are a simulation agent that simulates a user's rating and review with an item. \n            There is a user with id and an item with id. ",
+        "user_id": "FAPDpWyCljDRpRZT3dC3tQ",
+        "item_id": "V7KWP_nQkpSxR3t7bEqrMw"
+      },
+      "output": {
+        "stars": 4.0,
+        "review": "still love coming here whenever i need a break. bartram's garden is such a peaceful oasis in the city for nature lovers like me. beautiful botanic gardens and a great place to stroll."
+      }
+    },
+    {
+      "task": {
+        "description": "This is a simulation task. \n            You are a simulation agent that simulates a user's rating and review with an item. \n            There is a user with id and an item with id. ",
+        "user_id": "K81DSGPsflFdbyXFAytisQ",
+        "item_id": "xdaolPAeHkfIDNk395kbSw"
+      },
+      "output": {
+        "stars": 4.0,
+        "review": "stopped by the anchor bar in tampa after work. icy draft beer and casual vibe hit the spot. friendly staff and good bar food made it a solid 4-star experience."
+      }
+    },
+    {
+      "task": {
+        "description": "This is a simulation task. \n            You are a simulation agent that simulates a user's rating and review with an item. \n            There is a user with id and an item with id. ",
+        "user_id": "Ul72z03eDConHqTi23Z63g",
+        "item_id": "X9e_btDPux6JGqqw8UF_Pg"
+      },
+      "output": {
+        "stars": 4.0,
+        "review": "koizi endless hibachi & sushi eatery is a great find in tampa! the all you can eat format at this price point is fantastic value - the sushi and hibachi were both solid choices. i like that you order from the menu instead of a buffet. definitely coming back for another lunch visit."
+      }
+    },
+    {
+      "task": {
+        "description": "This is a simulation task. \n            You are a simulation agent that simulates a user's rating and review with an item. \n            There is a user with id and an item with id. ",
+        "user_id": "pRwSr0-jI-OkflYkRdKfBQ",
+        "item_id": "VJJvf5TwX2xXn2mFducV6w"
+      },
+      "output": {
+        "stars": 4.0,
+        "review": "i love halloween and howl-o-scream at busch gardens in tampa is a great time! the scare actors really got me and i had a blast. it's not as fancy as some other parks but definitely worth the price. i'd go again."
+      }
+    },
+    {
+      "task": {
+        "description": "This is a simulation task. \n            You are a simulation agent that simulates a user's rating and review with an item. \n            There is a user with id and an item with id. ",
+        "user_id": "YmabtozvRR7ZLvDS8bP_Ow",
+        "item_id": "OxBZqeYH5xuusEPp9ml7-g"
+      },
+      "output": {
+        "stars": 5.0,
+        "review": "El Guero Canelo is outstanding! The SONORAN hotdogs are amazing - crispy bacon, soft buns, loaded with fresh toppings. Been going there for years, never disappointed! Love it!"
+      }
+    },
+    {
+      "task": {
+        "description": "This is a simulation task. \n            You are a simulation agent that simulates a user's rating and review with an item. \n            There is a user with id and an item with id. ",
+        "user_id": "ddIzmMdt-5hfy2J3Ff5Utw",
+        "item_id": "OMT709IPPEwN91CAXpe9dw"
+      },
+      "output": {
+        "stars": 3.0,
+        "review": "downtown kitchen + cocktails has a beautiful restaurant vibe with trendy upscale ambience. the crispy calamari and black mussels were excellent starters, though i found some entrees just average. decent spot for cocktails, but not memorable enough to rush back."
+      }
+    },
+    {
+      "task": {
+        "description": "This is a simulation task. \n            You are a simulation agent that simulates a user's rating and review with an item. \n            There is a user with id and an item with id. ",
+        "user_id": "rTJ3EecGoQNbfFj7mqjDmw",
+        "item_id": "tmYa9OC8NE4ov2BoLyL2WQ"
+      },
+      "output": {
+        "stars": 4.0,
+        "review": "came back to thai island and it was just as good as i remembered. the hawaiian curry specialty with shrimp is still amazing - i'd eat it every day if i could. love that this hidden gem on davis island delivers consistently great thai food in a quaint little spot."
+      }
+    },
+    {
+      "task": {
+        "description": "This is a simulation task. \n            You are a simulation agent that simulates a user's rating and review with an item. \n            There is a user with id and an item with id. ",
+        "user_id": "QhzzVcCXetK2hCctHsMzmg",
+        "item_id": "3YqUe2FTCQr0pPVK8oCv6Q"
+      },
+      "output": {
+        "stars": 4.0,
+        "review": "great cuban food and old cuban atmosphere in tampa. loved the classic spanish tiles and historic feel. authentic spot with nice ambience, prices very reasonable for lunch. definitely a solid choice for ybor city vibes."
+      }
+    },
+    {
+      "task": {
+        "description": "This is a simulation task. \n            You are a simulation agent that simulates a user's rating and review with an item. \n            There is a user with id and an item with id. ",
+        "user_id": "xoh7wpyeiv5Elkr2yxGQBA",
+        "item_id": "yb2vAoH3E-R11yWmnT570w"
+      },
+      "output": {
+        "stars": 4.0,
+        "review": "the taco bus hit the spot! incredible barbacoa tacos and fresh toppings. casual vibe and affordable prices make this tampa gem worth the trip. definitely a cut above typical fast food!"
+      }
+    },
+    {
+      "task": {
+        "description": "This is a simulation task. \n            You are a simulation agent that simulates a user's rating and review with an item. \n            There is a user with id and an item with id. ",
+        "user_id": "mfFgFfW8RfKFRaO9w6ImLA",
+        "item_id": "Nggy_QUDxaLlrcQAQf7GnQ"
+      },
+      "output": {
+        "stars": 4.0,
+        "review": "juanito's chicken burrito is still my go-to! overstuffed with fresh cilantro and the family is very accommodating. casual spot with wonderful food and great prices in tucson. never disappoints!"
+      }
+    },
+    {
+      "task": {
+        "description": "This is a simulation task. \n            You are a simulation agent that simulates a user's rating and review with an item. \n            There is a user with id and an item with id. ",
+        "user_id": "_BcWyKQL16ndpBdggh2kNA",
+        "item_id": "nIAbuktMEzVjT4P9pG89rQ"
+      },
+      "output": {
+        "stars": 4.0,
+        "review": "upscale Asian fusion in the heart of philly - the ambience is fantastic and the service lives up to the hype. while it's pricey, the quality makes it worth it for a special night out. def one of the better spots in the city for a dressy evening."
+      }
+    },
+    {
+      "task": {
+        "description": "This is a simulation task. \n            You are a simulation agent that simulates a user's rating and review with an item. \n            There is a user with id and an item with id. ",
+        "user_id": "JyzLjUFEIW3epNlHI6Oa6Q",
+        "item_id": "ufHEFbsrBnVDAaUpz3vuPA"
+      },
+      "output": {
+        "stars": 3.0,
+        "review": "i've been to this spot during a pub crawl and it's definitely a fun ybor classic. the drag shows and people watching are entertaining but the very loud music makes it hard to hold a conversation. solid for a night out if you're into the scene, though not for everyone."
+      }
+    },
+    {
+      "task": {
+        "description": "This is a simulation task. \n            You are a simulation agent that simulates a user's rating and review with an item. \n            There is a user with id and an item with id. ",
+        "user_id": "04hS_dGfUZd_5iJYRdPHLw",
+        "item_id": "RZiKnkn-YXCn7QK038MocA"
+      },
+      "output": {
+        "stars": 4.0,
+        "review": "first class free got me through the door but the instructors are great kept me coming back. small class sizes mean you get real attention and tips, exactly like ppy. instructors are great at offering modifications so you feel challenged without being lost."
+      }
+    }
+  ]
+}

@@ -13,7 +13,7 @@ import sys
 import os
 
 if sys.prefix == sys.base_prefix:
-    print("❌ Please run this script with uv: uv run python run_pipeline.py", file=sys.stderr)
+    print("[ERROR] Please run this script with uv: uv run python run_pipeline.py", file=sys.stderr)
     sys.exit(1)
 
 import time
@@ -56,19 +56,22 @@ if args.mock:
 
     patch("litellm.completion", side_effect=fake_completion).start()
     os.environ["OPENAI_API_KEY"] = "sk-mock-key"
-    print("⚙️  Mode: Mock LLM (no token cost)")
+    print("[INFO] Mode: Mock LLM (no token cost)")
 else:
     from dotenv import load_dotenv
     load_dotenv()
+    # CrewAI/litellm stacks may read OPENAI_BASE_URL (not OPENAI_API_BASE).
+    if os.environ.get("OPENAI_API_BASE") and not os.environ.get("OPENAI_BASE_URL"):
+        os.environ["OPENAI_BASE_URL"] = os.environ["OPENAI_API_BASE"]
     api_key = os.environ.get("OPENAI_API_KEY", "")
     api_base = os.environ.get("OPENAI_API_BASE", "")
     model    = os.environ.get("OPENAI_MODEL_NAME", "(not set)")
-    print("⚙️  Mode: Real LLM")
-    key_status = "✅ set" if api_key else "❌ not set"
-    nvidia_warn = "  ⚠️  Warning: key does not look like an NVIDIA nvapi key" if api_key and not api_key.startswith("nvapi") else ""
-    print(f"🔑 API Key : {key_status}{nvidia_warn}")
-    print(f"🌐 Base URL: {api_base or '❌ not set'}")
-    print(f"🤖 Model   : {model}")
+    print("[INFO] Mode: Real LLM")
+    key_status = "set" if api_key else "not set"
+    nvidia_warn = "  [WARN] key does not look like an NVIDIA nvapi key" if api_key and not api_key.startswith("nvapi") else ""
+    print(f"[INFO] API Key : {key_status}{nvidia_warn}")
+    print(f"[INFO] Base URL: {api_base or 'not set'}")
+    print(f"[INFO] Model   : {model}")
 
 # ======================================================================
 # Load Framework
@@ -85,7 +88,7 @@ RUN_TIMESTAMP = datetime.now().strftime("%Y%m%d_%H%M%S")
 REPORT_PATH   = f"pipeline_report_{RUN_TIMESTAMP}.json"
 
 print("\n" + "=" * 65)
-print(f"🚀 AgentSociety Pipeline Run — {RUN_TIMESTAMP}")
+print(f"AgentSociety Pipeline Run - {RUN_TIMESTAMP}")
 print(f"   threads={args.threads}  timeout={TIMEOUT_SEC or '∞'}s  tasks={args.tasks or 'all'}")
 print("=" * 65)
 
@@ -117,7 +120,7 @@ try:
     init_elapsed = time.time() - init_start
 
     tasks_to_run = simulator.tasks[:args.tasks] if args.tasks else simulator.tasks
-    print(f"    ✅ Initialized ({init_elapsed:.1f}s) — running {len(tasks_to_run)}/{len(simulator.tasks)} tasks")
+    print(f"    [OK] Initialized ({init_elapsed:.1f}s) - running {len(tasks_to_run)}/{len(simulator.tasks)} tasks")
 
     # 2. Run Inference
     mode_label = f"threading (workers={args.threads})" if args.threads > 1 else "sequential"
@@ -161,12 +164,12 @@ try:
                 elapsed = time.time() - t0
                 per_task_times.append(elapsed)
                 simulator.simulation_outputs.append(result)
-                print(f"  ✓ {task_label} — stars={stars}  ({elapsed:.1f}s)")
+                print(f"  [OK] {task_label} - stars={stars}  ({elapsed:.1f}s)")
     else:
         # --- Sequential mode (with per-task timeout) ---
         for idx, task in enumerate(tasks_to_run):
             task_label = f"Task {idx+1:02d}/{len(tasks_to_run)}"
-            print(f"  ⏳ {task_label} — user={task.user_id[:8]}... item={task.item_id[:8]}...", end="", flush=True)
+            print(f"  [RUN] {task_label} - user={task.user_id[:8]}... item={task.item_id[:8]}...", end="", flush=True)
             t0 = time.time()
             try:
                 with ThreadPoolExecutor(max_workers=1) as executor:
@@ -192,7 +195,7 @@ try:
             elapsed = time.time() - t0
             per_task_times.append(elapsed)
             simulator.simulation_outputs.append(result)
-            print(f" → stars={stars}  ({elapsed:.1f}s)")
+            print(f" -> stars={stars}  ({elapsed:.1f}s)")
 
     infer_elapsed = time.time() - infer_start
     total_elapsed = time.time() - wall_start
@@ -237,20 +240,20 @@ try:
     # Summary
     # ======================================================================
     print("\n" + "=" * 65)
-    print("📊  PIPELINE RESULT SUMMARY")
+    print("PIPELINE RESULT SUMMARY")
     print("=" * 65)
     for k, v in eval_results.get("metrics", {}).items():
         print(f"  {k:30s}: {v}")
     print("-" * 65)
-    print(f"  ⏱  Init time      : {init_elapsed:.1f}s")
-    print(f"  ⏱  Inference time : {infer_elapsed:.1f}s  (avg {avg_task_time:.1f}s/task)")
-    print(f"  ⏱  Wall clock     : {total_elapsed:.1f}s  ({total_elapsed/60:.1f} min)")
-    print(f"  ❌  Errors/timeouts: {error_count}")
-    print(f"  📁  Report        : {REPORT_PATH}")
+    print(f"  Init time        : {init_elapsed:.1f}s")
+    print(f"  Inference time   : {infer_elapsed:.1f}s  (avg {avg_task_time:.1f}s/task)")
+    print(f"  Wall clock       : {total_elapsed:.1f}s  ({total_elapsed/60:.1f} min)")
+    print(f"  Errors/timeouts  : {error_count}")
+    print(f"  Report           : {REPORT_PATH}")
     print("=" * 65)
-    print("✅  Pipeline run complete!")
+    print("[OK] Pipeline run complete!")
 
 except Exception as e:
-    print(f"\n❌ Run failed: {e}")
+    print(f"\n[ERROR] Run failed: {e}")
     import traceback
     traceback.print_exc()
