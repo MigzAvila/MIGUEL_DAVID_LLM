@@ -1,9 +1,8 @@
 import os
 
 from crewai import Agent, Crew, Process, Task
+from crewai.knowledge.source.text_file_knowledge_source import TextFileKnowledgeSource
 from crewai.project import CrewBase, agent, crew, task
-
-from src.knowledge.prebuilt_source import PrebuiltTextKnowledgeSource
 
 
 def _env_truthy(value: str | None) -> bool:
@@ -37,7 +36,7 @@ def _knowledge_embedder_config() -> dict:
     return {"provider": provider, "config": cfg}
 
 
-def _build_optional_knowledge_sources() -> list[PrebuiltTextKnowledgeSource]:
+def _build_optional_knowledge_sources() -> list[TextFileKnowledgeSource]:
     # Knowledge is opt-in. Default OFF because the sequential pipeline already
     # injects ground-truth Yelp data into the prompts, and a stale persistent
     # collection (sentence_transformer vs openai) caused noisy embedding errors.
@@ -52,13 +51,8 @@ def _build_optional_knowledge_sources() -> list[PrebuiltTextKnowledgeSource]:
     if not knowledge_file:
         return []
 
-    skip_if_exists = _env_truthy(os.getenv("CREWAI_USE_PREBUILT_INDEX"))
     return [
-        PrebuiltTextKnowledgeSource(
-            file_path=knowledge_file,
-            collection_name="crew",
-            skip_if_index_exists=skip_if_exists,
-        )
+        TextFileKnowledgeSource(file_paths=[knowledge_file])
     ]
 
 
@@ -83,6 +77,7 @@ class SimulationCrew():
             verbose=False,
             allow_delegation=False,
             max_iter=2,
+            max_retry_limit=4,
         )
 
     @agent
@@ -92,6 +87,7 @@ class SimulationCrew():
             verbose=False,
             allow_delegation=False,
             max_iter=2,
+            max_retry_limit=4,
         )
 
     @task

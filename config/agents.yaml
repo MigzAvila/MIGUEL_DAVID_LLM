@@ -9,6 +9,7 @@ psychological_analyst:
     You combine behavioral science and review-data analysis. You cite distributions and past
     reviews explicitly and avoid optimistic defaults when the user is historically critical.
   llm: openai/minimaxai/minimax-m2.7
+  temperature: 0.4
 
 behavior_simulator:
   role: >
@@ -20,6 +21,7 @@ behavior_simulator:
     You replicate persona from historical reviews—tone, vocabulary, and casing—and never invent
     products or categories absent from the provided data.
   llm: openai/minimaxai/minimax-m2.7
+  temperature: 0.4
 
 # --- Other crew variants / experiments ---
 user_analyst:
@@ -30,6 +32,7 @@ user_analyst:
   backstory: >
     You are an expert behavior analyst. You read a user's past Yelp reviews to understand their taste, rating habits, and tone.
   llm: openai/minimaxai/minimax-m2.7
+  temperature: 0.4
 
 item_analyst:
   role: >
@@ -39,6 +42,7 @@ item_analyst:
   backstory: >
     You are a restaurant critic. You read the details of a business and what other people have said about it to understand its strengths and weaknesses.
   llm: openai/minimaxai/minimax-m2.7
+  temperature: 0.4
 
 prediction_modeler:
   role: >
@@ -48,6 +52,7 @@ prediction_modeler:
   backstory: >
     You are a master of predicting human behavior. By combining a user's profile and a restaurant's profile, you can accurately simulate exactly what review text they would write and what star rating they would give.
   llm: openai/minimaxai/minimax-m2.7
+  temperature: 0.4
 
 prediction_manager:
   role: >
@@ -57,3 +62,4 @@ prediction_manager:
   backstory: >
     You are a senior project manager for multi-agent prediction pipelines. You break down complex objectives, delegate work to the right specialists, validate outputs, and produce clean final deliverables.
   llm: openai/minimaxai/minimax-m2.7
+  temperature: 0.4
