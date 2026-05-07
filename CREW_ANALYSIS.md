@@ -4,6 +4,8 @@
 > **Framework:** [CrewAI](https://github.com/crewAIInc/crewAI) ≥ 1.14.1
 > **LLM Backend:** [Groq](https://groq.com/) via LiteLLM (`groq/…` model id), OpenAI-compatible base URL `https://api.groq.com/openai/v1`. Per-agent overrides live under each `llm:` key in [`config/agents.yaml`](config/agents.yaml); `OPENAI_MODEL_NAME` in `.env` should match the same provider/model family.
 > **Package Manager:** `uv`
+>
+> **Doc synced to git `main` (2026-05-06):** `d465918` — `config/tasks.yaml`, `config/agents.yaml`, `src/crews/simulation_crew.py`; prior commits `fe63e32` (`run_pipeline.py`, `run_test.py`, sample reports), `8632321` (adapter: peer snippets, prior blend, repair pass).
 
 ---
 
@@ -14,7 +16,7 @@
 3. [Crew Members (Agents)](#3-crew-members-agents)
 4. [How Agents Collaborate](#4-how-agents-collaborate)
 5. [Knowledge & Data Retrieval](#5-knowledge--data-retrieval)
-6. [Current Findings](#6-current-findings) · [§6.5 Measured accuracy](#6-5-measured-accuracy-pipeline-report)
+6. [Current Findings](#6-current-findings) · [6.5 Measured accuracy](#65-measured-accuracy-reports)
 7. [Running the Tests](#7-running-the-tests)
 
 ---
@@ -30,8 +32,11 @@ The project is **fully compliant** with the AgentSociety official simulator inte
 | Crew assembly via `@CrewBase`, `@agent`, `@task` | `src/crews/simulation_crew.py` | ✅ |
 | Simulator adapter returning `predicted_rating` & `generated_review` | `src/flows/serving_flow.py` | ✅ |
 | `get_interaction_tool()` available for agent equipping | `src/tools/interaction_tool_wrapper.py` | ✅ |
-| Mock + real LLM test runners | `run_simulator_test.py` | ✅ |
-| Bottom-layer files untouched | `crewai_simulation_agent.py`, `serving_flow.py` | ✅ |
+| Training / smoke pipeline (mock + real LLM, threading, timeouts) | `run_pipeline.py` | ✅ |
+| Official test-day runner (Drive zip, email report) | `run_test.py` | ✅ |
+| Legacy env-var test runner (`SIMULATOR_NUM_TASKS`, …) | `run_simulator_test.py` | ✅ (optional) |
+| Flow layer output contract stable | `serving_flow.py` (`predicted_rating`, `generated_review`) | ✅ |
+| Adapter pre-fetch + calibration (see [Architecture](#2-architecture-overview) and [Knowledge](#5-knowledge--data-retrieval)) | `crewai_simulation_agent.py` | ✅ (team-maintained) |
 
 > [!IMPORTANT]
 > The `predicted_rating` and `generated_review` keys in `InferenceState` are the **invisible contract** between the crew and the competition adapter. These are never renamed.
@@ -90,6 +95,12 @@ Rather than having a `data_retriever` agent call the `Interaction Tool Wrapper` 
 - ✅ One fewer LLM round-trip per prediction
 - ✅ No threading race conditions on the singleton `InteractionTool`
 - ✅ Consistent, reproducible prompts across runs
+
+**Recent adapter enhancements** (see git history: `crewai_simulation_agent.py` expanded May 2026; `config/tasks.yaml` + `simulation_crew.py` tuned in follow-up commits):
+
+- **Peer-review snippets:** Up to five short excerpts from *other* users’ reviews of the same business are appended under the item summary (topical context only; not ground-truth labels for the target user).
+- **Star prior / calibration block:** A `PRIOR_STAR_ESTIMATE` blends the user’s historical average with the item’s public `avg_stars` (70% item / 30% user) and is injected into the history block so Head A can reconcile “critical overall average” with “strong item match.”
+- **Post-crew consistency pass:** If star rating and review sentiment are obviously mismatched (simple lexicon check), the flow runs **one repair kickoff** with a stricter consistency hint before returning `{stars, review}`.
 
 ---
 
@@ -150,21 +161,22 @@ Three crew modes are available, selectable via `CREWAI_PROCESS_MODE` environment
          │
          ▼
  psychological_analyst
-  ├─ Receives: user_summary, item_summary, history_summary
+  ├─ Receives: user_summary, item_summary, history_summary (includes PRIOR_STAR_ESTIMATE block)
   ├─ Task: analyze_preference_task
   │   • States user's historical avg stars & distribution
   │   • Cites 1-2 specific past reviews
   │   • Produces numeric preliminary rating estimate
-  └─ Output: Markdown analysis (≤250 words)
+  │   • Ends with: HEAD_A_TARGET_STARS: <1.0|…|5.0>
+  └─ Output: Markdown analysis (≤250 words) + HEAD_A line
          │
          │ (context passed automatically)
          ▼
   behavior_simulator
-  ├─ Receives: all pre-fetched data + analyst's output as context
+  ├─ Receives: all pre-fetched data + analyst's output as context (item may include OTHER REVIEWERS snippets)
   ├─ Task: simulate_review_task
-  │   • Selects a star rating from {1.0, 2.0, 3.0, 4.0, 5.0}
-  │   • Writes 1-3 sentence review matching user's tone & style
-  │   • References only item's real categories
+  │   • Selects a star rating from {1.0, 2.0, 3.0, 4.0, 5.0} (follow Head A unless violated)
+  │   • Writes 2–4 short sentences (≤~280 chars), matching user's tone & style
+  │   • Grounds on item attributes; may reuse 1–2 short phrases from peer snippets when present
   └─ Output: STRICT JSON → {"stars": 3.0, "review": "..."}
 ```
 
@@ -218,7 +230,8 @@ For each prediction task, the system retrieves three data sources from the Yelp 
 |---|---|---|
 | **User Profile** | `get_user(user_id)` | Name, review count, yelping_since, average_stars, useful/funny/cool counts, fans, elite years |
 | **Item Details** | `get_item(item_id)` | Name, location, avg_stars, review_count, categories, price range, noise level, ambience |
-| **Review History** | `get_reviews(user_id)` | Up to the 12 most recent reviews: stars, date, and up to 280-char text snippets |
+| **Review History** | `get_reviews(user_id)` | Up to the 12 most recent reviews: stars, date, and up to **360**-char text snippets |
+| **Peer item reviews** | `get_reviews(item_id)` | Up to 5 snippets from other reviewers (same business), for topical vocabulary — injected next to item details |
 
 ### 5.2 How Data Is Structured for Prompts
 
@@ -244,12 +257,14 @@ RECENT_REVIEWS (most recent first):
 
 **Truncation guards** prevent context window overflows:
 - Max 12 historical reviews passed to prompts
-- Review text capped at 280 characters each
+- Review text capped at **360** characters each
 - Item categories capped at 240 characters
+
+The analyst’s prompt also receives a **calibration block** after the history summary: `PRIOR_STAR_ESTIMATE` (blend of user history mean and item `avg_stars`) plus short instructions so Head A does not only anchor on the user’s global average when the item is an obvious strong or weak match.
 
 ### 5.3 Fallback Rating Computation
 
-A `fallback_rating` is calculated deterministically from the user's review history **before** any LLM is called. If the crew fails or times out, this value (the user's historical mean, clamped to [1.0, 5.0]) is used instead of a default 4.0.
+The flow’s `fallback_rating` field is set to the same **prior** as `PRIOR_STAR_ESTIMATE` (user mean blended with item public average when available), not the raw user mean alone. If the crew fails or times out, serving logic can still fall back to historical patterns; the adapter’s final `{stars, review}` also applies **star bucketing** to `{1.0,…,5.0}` and optional **sentiment repair** (see [Architecture](#2-architecture-overview)).
 
 ### 5.4 Optional Knowledge Base (ChromaDB + RAG)
 
@@ -300,6 +315,9 @@ The wrapper is a thin bridge between the AgentSociety `InteractionTool` (injecte
 | **Fallback rating from user history** | Prevents defaulting to 4.0 when crew fails | ✅ Graceful degradation on API errors |
 | **Star rating constrained to {1.0, 2.0, 3.0, 4.0, 5.0}** | Matches Yelp's actual discrete rating scale | ✅ Avoids non-standard outputs like 3.5 |
 | **Rating distribution injected verbatim** | Critical for replicating critical reviewers (avg 2-3★) vs generous ones (avg 4-5★) | ✅ Prevents systematic upward bias |
+| **Item-heavy star prior (70/30 blend)** | Aligns predictions with public item quality while respecting user history | ✅ Better MAE when users are mixed reviewers |
+| **Peer-review snippets** | Gives concrete dish/venue phrases for embedding overlap | ✅ Improves review_generation / topical match |
+| **Single sentiment–star repair pass** | Reduces “4★ + negative text” evaluator penalties | ✅ Cheap second kickoff only on conflict |
 
 ### 6.2 Prompt Engineering Strategies
 
@@ -307,6 +325,8 @@ The wrapper is a thin bridge between the AgentSociety `InteractionTool` (injecte
 - **Persona replication:** The behavior_simulator backstory emphasizes replicating tone, vocabulary, and casing (e.g., "many Yelp users write entirely in lowercase").
 - **Negative constraints:** "Do NOT default to 4 or 5 just because the item has high public ratings" — directly counters known LLM optimism bias.
 - **Cross-contamination prevention:** "Never reference products or categories absent from the data" — stops agents from hallucinating electronics into a restaurant review.
+- **Head A / Head B contract:** Analyst output must end with `HEAD_A_TARGET_STARS: <1.0|…|5.0>`; the simulator task treats that line as the primary star target before JSON emission.
+- **Phrase reuse from peer snippets:** When other-reviewer snippets exist, the simulator prompt asks for 1–2 short verbatim phrases (2–6 words) to align with how people discuss that business.
 
 ### 6.3 Known Limitations & Open Challenges
 
@@ -340,45 +360,75 @@ Real inference test summary format:
 Summary: MAE=X.XX  exact=Y/N  within 1 star=Z/N
 ```
 
-### 6.5 Measured accuracy (pipeline report)
+### 6.5 Measured accuracy (reports)
 
-The following figures come from the official simulator evaluation block in [`pipeline_report_20260505_113003.json`](pipeline_report_20260505_113003.json) (`run_pipeline.py --mock --tasks 1`).
+**Full test-set run (official evaluation shape):** [`test_report_20260506_222218.json`](test_report_20260506_222218.json) — produced by `run_test.py` on the bundled 41-task zip (`real_llm`, 1 thread, 300s task timeout). Git commit `fe63e32` added this report alongside `run_pipeline.py` / `run_test.py` updates.
 
 | Run context | Value |
 |---|---|
-| **Report file** | `pipeline_report_20260505_113003.json` |
-| **Run timestamp** | `20260505_113003` |
-| **Mode** | Mock LLM (litellm patched; structural / smoke run) |
-| **Model name in report** | Whatever `OPENAI_MODEL_NAME` was at run time (e.g. `gpt-4o-mini` for OpenAI, or `groq/llama-3.1-8b-instant` for Groq) |
-| **Tasks run / GT pairs** | `1` simulated vs `41` ground-truth rows loaded (evaluator uses `min(count)` → **n = 1** for metrics) |
-| **Pipeline errors** | `0` |
+| **Report file** | `test_report_20260506_222218.json` |
+| **Run timestamp** | `20260506_222218` |
+| **Mode** | `real_llm` |
+| **Tasks evaluated** | **41** / 41 (ground truth aligned) |
+| **Errors** | **2** (see `per_task_outputs` / error fields in the JSON) |
+| **Wall clock (inference)** | ~3943 s (~96 s avg / task) |
 
 **Simulator metrics (higher is better for all three):**
 
-| Metric | Score | Interpretation |
-|---|---|---|
-| **preference_estimation** | **0.9455** | Star-rating side of the objective (≈94.5% on this single pair). |
-| **review_generation** | **0.4513** | Text-similarity / review-quality score (≈45.1%). |
-| **overall_quality** | **0.6984** | Combined objective (≈69.8%). |
+| Metric | Score |
+|---|---|
+| **preference_estimation** | **0.8829** |
+| **review_generation** | **0.8210** |
+| **overall_quality** | **0.8520** |
+
+**Replicate this run:** From the repo root, use the bundled 41-task zip (same tasks/ground truth as the report above), real LLM, single thread, and default 300s per-task timeout:
+
+```powershell
+uv run python run_test.py --test-set test_set_41.zip
+```
+
+Match **`config/agents.yaml`** / **`.env`** (`OPENAI_API_KEY`, `OPENAI_API_BASE`, `OPENAI_MODEL_NAME`, `CREWAI_PROCESS_MODE`, etc.) to the environment that produced the report; different models or prompts will change scores. The script prompts interactively for team metadata and instructor email settings — use the same inputs you care to document, or run once to seed a local `test_report_*.json` for comparison.
+
+**Local pipeline JSON:** `uv run python run_pipeline.py` writes `pipeline_report_<timestamp>.json` (dummy dataset + `dummy_tasks` / `dummy_groundtruth`) with the same top-level shape (`evaluation`, `per_task_outputs`, timing). Use `--mock`, `--tasks N`, `--threads M`, and `--timeout SEC` for smoke and parallelism (see script docstring).
 
 > [!NOTE]
-> On this run the emitted review string was the adapter **fallback** (`"Crew execution failed; falling back to historical average."`), so **review_generation** and **overall_quality** mainly reflect that single-task path—not a full multi-task or failure-free crew run. Re-run `uv run python run_pipeline.py --tasks N` (or the full suite) and paste the latest `pipeline_report_*.json` metrics here when you want an updated accuracy table.
+> Older one-task mock snapshots (e.g. historical `pipeline_report_20260505_*.json`) are not retained in the repo; treat the table above as the current **full-task** reference unless you generate a newer `test_report_*.json` or `pipeline_report_*.json`.
 
 ---
 
 ## 7. Running the Tests
 
-### Quick Structural Test (Free — No Tokens Used)
+### Primary: training / smoke pipeline (`run_pipeline.py`)
+
 ```powershell
-uv run python run_simulator_test.py --mock
+uv run python run_pipeline.py --mock
+uv run python run_pipeline.py
+uv run python run_pipeline.py --threads 2
+uv run python run_pipeline.py --tasks 1
+uv run python run_pipeline.py --timeout 120
 ```
 
-### Real LLM Test (5 Tasks by Default)
+### Official test-day flow (`run_test.py`)
+
 ```powershell
+uv run python run_test.py
+uv run python run_test.py --test-set test_set_41.zip
+uv run python run_test.py --test-set path\to\other_set.zip
+uv run python run_test.py --mock
+uv run python run_test.py --threads 2 --timeout 300
+```
+
+To reproduce the metrics in [section 6.5](#65-measured-accuracy-reports), prefer `--test-set test_set_41.zip` with the same `.env` and crew config as that run.
+
+### Legacy runner (env-driven task count)
+
+```powershell
+uv run python run_simulator_test.py --mock
 uv run python run_simulator_test.py
 ```
 
-### Full Training Set Evaluation
+### Full training-set evaluator (if present in repo)
+
 ```powershell
 uv run python evaluate_with_training_data.py
 ```
@@ -388,12 +438,17 @@ uv run python evaluate_with_training_data.py
 | Variable | Default | Description |
 |---|---|---|
 | `CREWAI_PROCESS_MODE` | `sequential` | Crew variant: `sequential`, `collaborative`, `hierarchical` |
-| `SIMULATOR_NUM_TASKS` | `5` | Number of tasks to run (`all` for full set) |
-| `SIMULATOR_THREADING` | `false` | Enable parallel task execution |
-| `SIMULATOR_MAX_WORKERS` | `1` | Worker count when threading is on |
+| `SIMULATOR_DEVICE` | `cpu` | Simulator device: `cpu`, `cuda`/`gpu`, `auto` |
+| `OPENAI_API_BASE` | _(from `.env`)_ | Mirrored to `OPENAI_BASE_URL` for CrewAI / LiteLLM when set |
+| `SIMULATOR_NUM_TASKS` | `5` | For **`run_simulator_test.py` only**: tasks to run (`all` for full set) |
+| `SIMULATOR_THREADING` | `false` | For **`run_simulator_test.py`**: parallel tasks |
+| `SIMULATOR_MAX_WORKERS` | `1` | For **`run_simulator_test.py`**: worker count when threading is on |
 | `CREWAI_ENABLE_KNOWLEDGE` | `false` | Enable optional ChromaDB RAG layer |
 | `CREWAI_KNOWLEDGE_FILE` | _(none)_ | Path to background knowledge file |
+| `CREWAI_KNOWLEDGE_JSON` | _(none)_ | Alternate env name for knowledge file path |
 | `CREWAI_USE_PREBUILT_INDEX` | `false` | Skip re-embedding if index exists |
+| `CREWAI_EMBEDDER_PROVIDER` | `sentence-transformer` | Embedder provider when knowledge is on |
+| `CREWAI_EMBEDDER_MODEL` | _(default MiniLM)_ | Override embedder model name |
 
 ---
 
@@ -423,12 +478,15 @@ AgentSocietyChallenge_w_CrewAI/
 │   └── tools/
 │       └── interaction_tool_wrapper.py  # ⛔ Simulator tool bridge
 │
-├── crewai_simulation_agent.py        # ⛔ Adapter layer (do not modify)
-├── run_simulator_test.py             # Test runner (mock + real LLM)
-├── evaluate_with_training_data.py    # Full dataset evaluator
+├── crewai_simulation_agent.py        # Adapter: pre-fetch, prior, peer snippets, repair pass
+├── run_pipeline.py                   # Main pipeline + `pipeline_report_*.json`
+├── run_test.py                       # Test-day runner + `test_report_*.json`
+├── test_set_41.zip                   # 41-task bundle (`--test-set` for replication)
+├── run_simulator_test.py             # Legacy env-var test runner
+├── evaluate_with_training_data.py    # Full dataset evaluator (if used)
 └── pyproject.toml                    # uv-managed dependencies
 ```
 
 > [!TIP]
 > Files marked 🔧 are the **student zone** — safe to modify freely.
-> Files marked ⛔ are the **bottom-layer** — modify with caution and never rename their output keys.
+> Treat `serving_flow.py` and the `InferenceState` field names as a **stable contract** (do not rename `predicted_rating` / `generated_review`). The adapter file may still accumulate team-specific retrieval and calibration logic as long as the final `{stars, review}` shape matches the simulator.
