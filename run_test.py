@@ -62,8 +62,8 @@ parser.add_argument("--test-set", default=None,
                     metavar="ZIP", help="Local path to test set zip (overrides Google Drive download)")
 parser.add_argument("--threads",  type=int, default=1,   metavar="N",
                     help="Worker threads (default: 1 = sequential)")
-parser.add_argument("--timeout",  type=int, default=300, metavar="SEC",
-                    help="Per-task timeout in seconds (default: 300)")
+parser.add_argument("--timeout",  type=int, default=86400, metavar="SEC",
+                    help="Per-task timeout in seconds (default: 86400)")
 parser.add_argument("--mock",     action="store_true",
                     help="Use mock LLM (no token cost) — for dry-run / testing only")
 args = parser.parse_args()

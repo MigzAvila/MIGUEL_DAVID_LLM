@@ -68,17 +68,21 @@ evolve-resume:  ## Resume from checkpoint (specify CHECKPOINT=path)
 evolve-test:  ## Local integration test evaluator (no evolution)
 	uv run --env-file .env python openevolve_evaluator.py
 
+.PHONY: visualizer
+visualizer:  ## Launch OpenEvolve visualizer (http://127.0.0.1:8080)
+	uv run python scripts/visualizer.py --path $(OUTPUT)
+
 # ============================================================================
 # Maintenance
 # ============================================================================
 .PHONY: clean
 clean:  ## Clean __pycache__ and .pyc files
-	@if exist __pycache__ (for /d /r %%d in (__pycache__) do @if not "%%d"==".venv" rd /s /q "%%d") 2>nul || echo cleaned
+	find . -type d -name "__pycache__" -not -path "*/.venv/*" -exec rm -rf {} + 2>/dev/null || echo cleaned
 
 .PHONY: clean-output
 clean-output:  ## Delete OpenEvolve output (WARNING: deletes checkpoints!)
-	@echo WARNING: This will delete $(OUTPUT) and all checkpoints.
-	@if exist $(OUTPUT) rd /s /q $(OUTPUT)
+	@echo "WARNING: This will delete $(OUTPUT) and all checkpoints."
+	rm -rf $(OUTPUT)
 
 # ============================================================================
 # Help
