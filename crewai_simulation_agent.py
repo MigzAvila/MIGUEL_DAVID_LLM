@@ -9,8 +9,13 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 if current_dir not in sys.path:
     sys.path.append(current_dir)
 
+# pyrefly: ignore [missing-import]
 from websocietysimulator.agent import SimulationAgent
-from src.flows.serving_flow import AgentSocietyServingFlow, InferenceState
+# pyrefly: ignore [missing-import]
+from src.flows.serving_flow import AgentSocietyServingFlow
+# pyrefly: ignore [missing-import]
+from src.flows.serving_flow import InferenceState
+# pyrefly: ignore [missing-import]
 from src.tools.interaction_tool_wrapper import inject_simulator_tool
 
 
@@ -268,9 +273,13 @@ class CrewAISimulationAgent(SimulationAgent):
     interaction tool BEFORE the crew runs, so downstream LLM agents always see
     real Yelp data. This eliminates hallucination, removes one LLM round trip,
     and avoids the singleton-tool race when threads run in parallel.
+
+    The optional `agents_config_path` parameter (or OPENEVOLVE_AGENTS_YAML env
+    var) allows OpenEvolve to inject a mutated agents YAML at runtime.
     """
 
-    def __init__(self, llm: Any = None) -> None:
+    def __init__(self, llm: Any = None, agents_config_path: str | None = None) -> None:
+        self.agents_config_path = agents_config_path or os.environ.get("OPENEVOLVE_AGENTS_YAML", None)
         super().__init__(llm)
 
     def _resolve_ids(self) -> tuple[str, str]:
@@ -337,7 +346,10 @@ class CrewAISimulationAgent(SimulationAgent):
             fallback_rating=prior,
         )
 
-        flow = AgentSocietyServingFlow(initial_state=initial_state)
+        flow = AgentSocietyServingFlow(
+            initial_state=initial_state,
+            agents_config_path=self.agents_config_path,
+        )
         final_state_dict = flow.kickoff()
 
         stars = _snap_star_bucket(final_state_dict.get("predicted_rating", prior))
@@ -361,7 +373,10 @@ class CrewAISimulationAgent(SimulationAgent):
                 history_summary=history_with_prior + repair_hint,
                 fallback_rating=stars,
             )
-            repaired_flow = AgentSocietyServingFlow(initial_state=repaired_state)
+            repaired_flow = AgentSocietyServingFlow(
+                initial_state=repaired_state,
+                agents_config_path=self.agents_config_path,
+            )
             repaired = repaired_flow.kickoff()
             stars = _snap_star_bucket(repaired.get("predicted_rating", stars))
             review = str(repaired.get("generated_review", "")) or review

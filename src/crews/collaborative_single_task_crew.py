@@ -1,3 +1,4 @@
+import os
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 
@@ -41,9 +42,11 @@ class CollaborativeSingleTaskCrew:
 
     @crew
     def crew(self) -> Crew:
+        max_rpm = int(os.getenv("CREWAI_MAX_RPM", 45))
         return Crew(
             agents=self.agents,
             tasks=self.tasks,
             process=Process.sequential,
             verbose=True,
+            max_rpm=max_rpm,
         )
