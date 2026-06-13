@@ -1,3 +1,4 @@
+import os
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 
@@ -54,10 +55,12 @@ class HierarchicalManagerCrew:
             self.psychological_analyst(),
             self.behavior_simulator(),
         ]
+        max_rpm = int(os.getenv("CREWAI_MAX_RPM", 45))
         return Crew(
             agents=worker_agents,
             tasks=self.tasks,
             process=Process.hierarchical,
             manager_agent=self.prediction_manager(),
             verbose=True,
+            max_rpm=max_rpm,
         )

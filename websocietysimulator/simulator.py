@@ -120,7 +120,7 @@ class Simulator:
         self.llm = llm
         logger.info("LLM set")
 
-    def run_simulation(self, number_of_tasks: int = None, enable_threading: bool = False, max_workers: int = None, time_limitation: float = None) -> List[Any]:
+    def run_simulation(self, number_of_tasks: int = None, enable_threading: bool = False, max_workers: int = None, time_limitation: float = None, task_timeout: int = 600) -> List[Any]:
         """
         Run the simulation with optional multi-threading support and time limitation.
         
@@ -129,6 +129,7 @@ class Simulator:
             enable_threading: Whether to enable multi-threading. Default is False.
             max_workers: Maximum number of threads to use. If None, will use min(32, number_of_tasks).
             time_limitation: Time limit in minutes. If None, no time limit is applied.
+            task_timeout: Per-task timeout in seconds when threading is enabled (default 600 = 10 min).
         Returns:
             List of outputs from agents for each scenario.
         """
@@ -208,7 +209,7 @@ class Simulator:
                     with ThreadPoolExecutor(max_workers=1) as single_task_executor:
                         future = single_task_executor.submit(run_agent_task, agent, task)
                         try:
-                            output = future.result(timeout=300)  # 5 minutes timeout
+                            output = future.result(timeout=task_timeout)  # configurable per-task timeout
                             result = {
                                 "task": task.to_dict(),
                                 "output": output
@@ -288,7 +289,8 @@ class Simulator:
             logger.warning(f"Warning: Number of simulation outputs ({sim_count}) does not match ground truth data ({gt_count})")
             # 使用较小的数量
             eval_count = min(sim_count, gt_count)
-            groundtruth_data = self.groundtruth_data[:eval_count]
+            # Only use ground truth for the tasks we actually ran (by position)
+            groundtruth_data = self.groundtruth_data[:sim_count][:eval_count]
             self.simulation_outputs = self.simulation_outputs[:eval_count]
         else:
             groundtruth_data = self.groundtruth_data

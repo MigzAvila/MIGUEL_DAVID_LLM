@@ -135,6 +135,10 @@ class CacheInteractionTool:
 
     def __del__(self):
         """Cleanup LMDB environments on object destruction."""
-        self.user_env.close()
-        self.item_env.close()
-        self.review_env.close()
+        for attr in ("user_env", "item_env", "review_env"):
+            env = getattr(self, attr, None)
+            if env is not None:
+                try:
+                    env.close()
+                except Exception:
+                    pass

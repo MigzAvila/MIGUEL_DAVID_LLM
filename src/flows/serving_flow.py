@@ -61,6 +61,21 @@ class InferenceState(BaseModel):
 
 
 class AgentSocietyServingFlow(Flow[InferenceState]):
+    """CrewAI serving flow with optional OpenEvolve agents_config_path override.
+
+    When agents_config_path is provided, the flow loads the YAML file and
+    overrides the crew's agents_config, enabling OpenEvolve to inject mutated
+    agent definitions at runtime.
+    """
+
+    def __init__(self, agents_config_path: str | None = None, tasks_config_path: str | None = None, *args, **kwargs):
+        # super().__init__ MUST come first — CrewAI's Flow base class is
+        # Pydantic-backed and resets the instance __dict__ during init.
+        # Setting custom attributes beforehand causes them to disappear.
+        super().__init__(*args, **kwargs)
+        self.agents_config_path = agents_config_path
+        self.tasks_config_path = tasks_config_path
+
     @start()
     def init_request(self) -> None:
         # Reserved for future state validation. Inputs are already populated.
@@ -86,7 +101,22 @@ class AgentSocietyServingFlow(Flow[InferenceState]):
         }
 
         try:
-            result = crew_factory().crew().kickoff(inputs=inputs)
+            crew_instance = crew_factory()
+
+            # OpenEvolve YAML override: when a mutated YAML is provided,
+            # replace the crew's config with the evolved version.
+            if self.agents_config_path:
+                import yaml
+                with open(self.agents_config_path, "r", encoding="utf-8") as f:
+                    crew_instance.agents_config = yaml.safe_load(f)
+
+            if self.tasks_config_path:
+                import yaml
+                with open(self.tasks_config_path, "r", encoding="utf-8") as f:
+                    crew_instance.tasks_config = yaml.safe_load(f)
+                    crew_instance.map_all_task_variables()
+
+            result = crew_instance.crew().kickoff(inputs=inputs)
         except Exception:
             self.state.predicted_rating = _clamp_stars(self.state.fallback_rating)
             self.state.generated_review = (

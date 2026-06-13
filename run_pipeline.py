@@ -29,7 +29,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed, TimeoutError as
 parser = argparse.ArgumentParser(description="AgentSociety CrewAI Pipeline Runner")
 parser.add_argument("--mock",    action="store_true",    help="Use mock LLM (no token cost)")
 parser.add_argument("--threads", type=int, default=1,    metavar="N",   help="Number of worker threads (default: 1 = sequential)")
-parser.add_argument("--timeout", type=int, default=300,  metavar="SEC", help="Per-task timeout in seconds (default: 300, 0 = disabled)")
+parser.add_argument("--timeout", type=int, default=86400,  metavar="SEC", help="Per-task timeout in seconds (default: 86400, 0 = disabled)")
 parser.add_argument("--tasks",   type=int, default=None, metavar="N",   help="Run only the first N tasks (default: all)")
 args = parser.parse_args()
 

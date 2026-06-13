@@ -105,11 +105,13 @@ class SimulationCrew():
     @crew
     def crew(self) -> Crew:
         knowledge_sources = _build_optional_knowledge_sources()
+        max_rpm = int(os.getenv("CREWAI_MAX_RPM", 45))
         crew_kwargs: dict = {
             "agents": self.agents,
             "tasks": self.tasks,
             "process": Process.sequential,
             "verbose": True,
+            "max_rpm": max_rpm,
         }
         if knowledge_sources:
             crew_kwargs["knowledge_sources"] = knowledge_sources
