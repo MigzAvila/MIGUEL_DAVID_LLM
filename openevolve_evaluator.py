@@ -244,13 +244,16 @@ def evaluate(program_path: str) -> dict:
             pref_estimation   = metrics.get("preference_estimation", 0.0)
             review_generation = metrics.get("review_generation", 0.0)
 
+            target_metric_name = os.environ.get("OPENEVOLVE_TARGET_METRIC", "overall_quality")
+            target_metric_val = metrics.get(target_metric_name, overall_quality)
+
             print(
-                f"[Evaluator] preference_estimation={pref_estimation:.4f}, "
+                f"[Evaluator] Target: {target_metric_name} | preference_estimation={pref_estimation:.4f}, "
                 f"review_generation={review_generation:.4f}, "
-                f"overall_quality={overall_quality:.4f}  →  combined_score={overall_quality:.4f}"
+                f"overall_quality={overall_quality:.4f}  →  combined_score={target_metric_val:.4f}"
             )
 
-            return {"combined_score": float(overall_quality)}
+            return {"combined_score": float(target_metric_val)}
 
         except Exception as sub_err:
             _log.error(f"[Evaluator] ❌ Subprocess orchestration failed: {sub_err}")

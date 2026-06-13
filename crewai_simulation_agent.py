@@ -278,8 +278,9 @@ class CrewAISimulationAgent(SimulationAgent):
     var) allows OpenEvolve to inject a mutated agents YAML at runtime.
     """
 
-    def __init__(self, llm: Any = None, agents_config_path: str | None = None) -> None:
+    def __init__(self, llm: Any = None, agents_config_path: str | None = None, tasks_config_path: str | None = None) -> None:
         self.agents_config_path = agents_config_path or os.environ.get("OPENEVOLVE_AGENTS_YAML", None)
+        self.tasks_config_path = tasks_config_path or os.environ.get("OPENEVOLVE_TASKS_YAML", None)
         super().__init__(llm)
 
     def _resolve_ids(self) -> tuple[str, str]:
@@ -349,6 +350,7 @@ class CrewAISimulationAgent(SimulationAgent):
         flow = AgentSocietyServingFlow(
             initial_state=initial_state,
             agents_config_path=self.agents_config_path,
+            tasks_config_path=self.tasks_config_path,
         )
         final_state_dict = flow.kickoff()
 
@@ -376,6 +378,7 @@ class CrewAISimulationAgent(SimulationAgent):
             repaired_flow = AgentSocietyServingFlow(
                 initial_state=repaired_state,
                 agents_config_path=self.agents_config_path,
+                tasks_config_path=self.tasks_config_path,
             )
             repaired = repaired_flow.kickoff()
             stars = _snap_star_bucket(repaired.get("predicted_rating", stars))

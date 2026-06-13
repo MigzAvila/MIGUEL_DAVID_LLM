@@ -28,6 +28,12 @@ test-mock:  ## Mock mode integration test (zero cost)
 test:  ## Real LLM integration test (all tasks)
 	uv run --env-file .env python run_smoke.py
 
+.PHONY: test-best
+test-best:  ## Run integration test using the best evolved agents and tasks
+	OPENEVOLVE_AGENTS_YAML=config/openevolve_output/checkpoints/checkpoint_50/best_program.yaml \
+	OPENEVOLVE_TASKS_YAML=config/openevolve_tasks_output/checkpoints/checkpoint_50/best_program.yaml \
+	uv run --env-file .env python run_smoke.py $(if $(TASKS),--tasks $(TASKS))
+
 .PHONY: smoke
 smoke:  ## Smoke test (1 task only)
 	uv run --env-file .env python run_smoke.py --tasks 1
@@ -47,6 +53,57 @@ evolve:  ## Launch OpenEvolve evolution (adjustable: ITERS=N TASKS=N)
 	    openevolve_evaluator.py \
 	    --config config/openevolve_config.yaml \
 	    --output $(OUTPUT) \
+	    --iterations $(ITERS)
+
+.PHONY: evolve-v2
+evolve-v2:  ## Launch Phase 2 OpenEvolve (builds on best agents & best tasks)
+	OPENEVOLVE_NUM_TASKS=$(TASKS) \
+	OPENEVOLVE_TASKS_YAML=config/openevolve_tasks_output/checkpoints/checkpoint_50/best_program.yaml \
+	uv run --env-file .env python -m openevolve.cli \
+	    config/openevolve_output/checkpoints/checkpoint_50/best_program.yaml \
+	    openevolve_evaluator.py \
+	    --config config/openevolve_config.yaml \
+	    --output config/openevolve_final_phase_output \
+	    --iterations $(ITERS)
+
+.PHONY: evolve-tasks
+evolve-tasks:  ## Launch OpenEvolve evolution on tasks.yaml
+	OPENEVOLVE_NUM_TASKS=$(TASKS) \
+	uv run --env-file .env python -m openevolve.cli \
+	    config/tasks_evolving.yaml \
+	    openevolve_evaluator_tasks.py \
+	    --config config/openevolve_task_config.yaml \
+	    --output config/openevolve_tasks_output \
+	    --iterations $(ITERS)
+
+.PHONY: evolve-analyst
+evolve-analyst:  ## Launch OpenEvolve targeting only star accuracy
+	OPENEVOLVE_NUM_TASKS=$(TASKS) OPENEVOLVE_TARGET_METRIC=preference_estimation \
+	uv run --env-file .env python -m openevolve.cli \
+	    config/agents_evolving.yaml \
+	    openevolve_evaluator.py \
+	    --config config/openevolve_config.yaml \
+	    --output config/openevolve_analyst_output \
+	    --iterations $(ITERS)
+
+.PHONY: evolve-simulator
+evolve-simulator:  ## Launch OpenEvolve targeting only text review generation quality
+	OPENEVOLVE_NUM_TASKS=$(TASKS) OPENEVOLVE_TARGET_METRIC=review_generation \
+	uv run --env-file .env python -m openevolve.cli \
+	    config/agents_evolving.yaml \
+	    openevolve_evaluator.py \
+	    --config config/openevolve_config.yaml \
+	    --output config/openevolve_simulator_output \
+	    --iterations $(ITERS)
+
+.PHONY: evolve-balanced
+evolve-balanced:  ## Launch OpenEvolve targeting overall quality (both star rating and review generation)
+	OPENEVOLVE_NUM_TASKS=$(TASKS) OPENEVOLVE_TARGET_METRIC=overall_quality \
+	uv run --env-file .env python -m openevolve.cli \
+	    config/agents_evolving.yaml \
+	    openevolve_evaluator.py \
+	    --config config/openevolve_config.yaml \
+	    --output config/openevolve_balanced_output \
 	    --iterations $(ITERS)
 
 .PHONY: evolve-resume
@@ -69,8 +126,28 @@ evolve-test:  ## Local integration test evaluator (no evolution)
 	uv run --env-file .env python openevolve_evaluator.py
 
 .PHONY: visualizer
-visualizer:  ## Launch OpenEvolve visualizer (http://127.0.0.1:8080)
+visualizer:  ## Launch OpenEvolve visualizer for baseline evolution
 	uv run python scripts/visualizer.py --path $(OUTPUT)
+
+.PHONY: visualizer-v2
+visualizer-v2:  ## Launch OpenEvolve visualizer for the v2 evolution
+	uv run python scripts/visualizer.py --path config/openevolve_final_phase_output
+
+.PHONY: visualizer-tasks
+visualizer-tasks:  ## Launch OpenEvolve visualizer for task evolution
+	uv run python scripts/visualizer.py --path config/openevolve_tasks_output
+
+.PHONY: visualizer-analyst
+visualizer-analyst:  ## Launch OpenEvolve visualizer for analyst evolution
+	uv run python scripts/visualizer.py --path config/openevolve_analyst_output
+
+.PHONY: visualizer-simulator
+visualizer-simulator:  ## Launch OpenEvolve visualizer for simulator evolution
+	uv run python scripts/visualizer.py --path config/openevolve_simulator_output
+
+.PHONY: visualizer-balanced
+visualizer-balanced:  ## Launch OpenEvolve visualizer for balanced evolution
+	uv run python scripts/visualizer.py --path config/openevolve_balanced_output
 
 # ============================================================================
 # Maintenance
